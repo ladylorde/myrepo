@@ -1,0 +1,70 @@
+---
+title: "01_Assignment_Brown.RMD"
+author: "Binta Brown"
+date: "8/23/2019"
+output:
+  
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r college}
+## Clear Environment
+rm(list=ls())
+## Get tidyverse library
+library(tidyverse)
+```
+
+```{r load_data}
+## Load in the data
+load("/Users/BBrown/Desktop/8200/LLO8200-master/college.Rdata")
+```
+
+Question 1 - The command below prints, "Hello, World"
+```{r}
+print("Hello, World")
+```
+
+Question 2
+1. I selected the colleges with admission rates of less than 10% and found their average earnings. The mean earnings of the most selective schools is $53,500.
+I did the same for colleges with admission rates of greater than 30% and found their average earnings. The mean earnings of the least selective schools is $34,747.14 
+
+```{r earning/selective colleges}
+sc%>%filter(adm_rate<.1)%>%summarize(mean_earnings_most_selective=mean(md_earn_wne_p6,na.rm=TRUE))
+sc%>%filter(adm_rate>.3)%>%summarize(mean_earnings_least_selective=mean(md_earn_wne_p6,na.rm=TRUE))
+```
+
+2. To find schools with very high SAT scores, I filtered by schools with an average of higher than 1500 SAT scores then found the population avergae of those schools. The population average of schools with higher than 1400 on the SAT is 6,858,041.
+I did the same for schools with very low SAT scores (lower than 1000) and found the population average of those with less than 1000 on the SAT to be 7,782.805
+
+
+```{r sat/college population}
+sc%>%filter(sat_avg<1500)%>%summarize(mean_population_highSAT=mean(ugds,na.rm=TRUE))
+sc%>%filter(sat_avg>1000)%>%summarize(mean_population_lowSAT=mean(ugds,na.rm=TRUE))
+```
+
+3. Below is the relationship between the cost of attendance and the amount of debt accumulated.
+I see at least two different results. (1) Up until the $20000, there appears to be a firm positive corelation between the cost of attendance and debt; (2) Cost of attendance between 25000 and 40000, the debt seems pretty steady regardless of instituition, hovering in the 10-15K range (3) the debt varies significantly at the cost of attendace of 50000. 
+
+This is not surprising because students from all different households attend different types of institutions.
+
+```{r cost/debt}
+plot(sc$costt4_a,sc$debt_mdn)
+```
+
+4.Below is the plot for cost by control of institution (1=public, 2= private non-profit, 3=private for-profit). The plot shows that prviate non-profit have the highest cost of attendance
+
+```{r cost and control}
+plot(sc$costt4_a,sc$control)
+```
+
+4. Below is the plot for debt by control of institution (1=public, 2= private non-profit, 3=private for-profit). The plot shows that prviate non-profit have the highest median amount debt
+
+```{r debt and control}
+plot(sc$debt_mdn,sc$control)
+```
+
