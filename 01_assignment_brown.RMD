@@ -48,7 +48,7 @@ sc%>%filter(sat_avg>1000)%>%summarize(mean_population_lowSAT=mean(ugds,na.rm=TRU
 ```
 
 3. Below is the relationship between the cost of attendance and the amount of debt accumulated.
-I see at least two different results. (1) Up until the $20000, there appears to be a firm positive corelation between the cost of attendance and debt; (2) Cost of attendance between 25000 and 40000, the debt seems pretty steady regardless of instituition, hovering in the 10-15K range (3) the debt varies significantly at the cost of attendace of 50000. 
+It's a weak correlation in general, however, I see at least three different results. (1) Up until the $20000, there appears to be a firm positive corelation between the cost of attendance and debt; (2) Cost of attendance between 25000 and 40000, the debt seems pretty steady regardless of instituition, hovering in the 10-15K range (3) the debt varies significantly at the cost of attendace of 50000. 
 
 This is not surprising because students from all different households attend different types of institutions.
 

@@ -1,0 +1,149 @@
+---
+title: "02_Assignment_Brown.RMD"
+author: "Binta Brown"
+date: "9/05/2019"
+output:
+  
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Obtained the necessary libraries: `knitr`, `tidyverse`, `plotly`, and `Metrics`.
+```{r county/homeownership}
+## Clear Environment
+rm(list=ls())
+## Get tidyverse library
+library(tidyverse)
+```
+
+```{r  include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(plotly)
+library(Metrics)
+```
+
+```{r data}
+load("pd.Rdata")
+```
+
+```{r}
+load("/Users/BBrown/Desktop/8200/LLO8200-master/pd.Rdata")
+```
+
+```{r explain_date}
+
+## Full explanation of data in codebook
+load("pd_lab_explain.Rdata")
+
+#or use View
+View(lab_explain)
+```
+##Question 1
+Calculate the mean of the outcome. 
+
+I piped the the data loaded to the `summarize` function to view the unconditional avergae of the homeownership rate variable, `homewon_rate`, which I found using the the `mean` fucntion
+
+```{r} 
+pd%>%summarize(mean_homeown_rate=mean(homeown_rate,na.rm=TRUE))
+```
+## Question 2
+Use your mean as a prediction. Create a new variable that consists of the mean of the outcome
+
+To create a new variable, I piped the data to the `mutate` fucntion and added `mean_homeown_rate` as a new column in my original dataset `pd`
+```{r}
+pd<-pd%>%mutate(mean_homeown_rate=mean(homeown_rate,na.rm=TRUE))
+```
+
+## Question 3
+Calculate a summary measure of the errors for each observation—the difference between your prediction and the outcome.
+
+Every observation in my dataset now has the same value of 72.74%, I can now calculate the error for each observation, that is, how far each county's homewonership rate is from the mean, that is, 72.74%. So now, I subtracted the `mean_homeown_rate` from each individual county's `homeown_rate`. 
+
+```{r error1}
+pd<-pd%>%mutate(error1=(homeown_rate-mean_homeown_rate))
+```
+
+To see far how far off this unconditional prediction was, I calculated the root mean sqaured error (RMSE). 
+
+```{r}
+## RMSE
+
+rmse_uncond_mean<-rmse(pd$homeown_rate,pd$mean_homeown_rate)
+
+rmse_uncond_mean
+```
+This RMSE indicates that the unconditional mean is off by 7.65%
+
+## Question 4
+Calculate the mean of the outcome at levels of a predictor variable.
+
+I selected `house_unit_multi` into four levels using the `ntile` function and added it as a variable using `mutate`
+
+```{r}
+pd<-pd%>%mutate(house_unit_multi_level=ntile(house_unit_multi,4))
+table(pd$house_unit_multi_level)
+```
+
+I then grouped data by house_unit_multi_level, calculated the `pred_homewon_rate` for each level and then ranked them in descending order.
+
+```{r}
+pd<-pd%>%group_by(house_unit_multi_level)%>% ## Group by predictor
+  ##Calculate mean at each level of predictor
+  mutate(pred_homeown_rate=mean(homeown_rate))%>%
+  ## Ungroup
+  ungroup()%>% 
+  #Rank by prediction, with ties sorted randomly
+  mutate(pred_homeown_rate_rank=rank(-pred_homeown_rate,ties.method="random"))
+```
+
+## Question 5
+Use these conditional means as a prediction: for every county, use the conditional mean to provide a ‘’best guess” as to that county’s level of the outcome.
+
+I view the counties and sort them by `pred_homeown_rate_rank`
+
+```{r}
+pd%>%select(county,house_unit_multi,house_unit_multi_level,pred_homeown_rate, pred_homeown_rate_rank)%>%View()
+```
+
+Those who live in multi-level homes, 2 or more, have a less likelihood of owning homes. 
+
+To visualize this as a plot, I used the `ggplot` function.
+
+```{r}
+gg<-ggplot(data=pd,aes(x=pred_homeown_rate_rank,y=homeown_rate,color="Actual"))
+gg<-gg+geom_point(alpha=.5,size=.5)
+gg<-gg+geom_point(aes(x=pred_homeown_rate_rank,y=pred_homeown_rate,color="Predicted:Conditional Mean, 1 var"))
+gg<-gg+ scale_color_manual("Type",values=c("Predicted:Conditional Mean, 1 var"="red","Actual"="black"))
+gg<-gg+theme(legend.position="bottom")
+gg<-gg+xlab("Rank")+ylab("Home Ownership Rate, 2008-2012")
+gg
+```
+
+# Question 6
+Calculate a summary measure of the error in your predictions.
+
+```{r}
+pd <- pd%>%mutate(error1=pred_homeown_rate-mean_homeown_rate)
+rmse_cond_mean <- rmse(pd$pred_homeown_rate,pd$mean_homeown_rate)
+rmse_cond_mean
+```
+Once again, I calculated the RMSE to see how far off these values were. The new RMSE now tells that the conditional mean is off by 4.47%
+
+To determine the amount of improvement to my RMSE by adding the new predictor, that is, `house_unit_multi_level`, I substracted the two values.
+
+##Difference btw rmse_uncond and rmse_cond
+```{r}
+rmse_difference <- rmse_uncond_mean-rmse_cond_mean
+round(rmse_difference, 2)
+```
+To illustrate this difference as a percent improvement, I divided the new `rmse_difference` by the orginal `rmse_conditional_mean`
+```{r}
+rmse_percent_improved <- (rmse_difference/rmse_uncond_mean)*100
+round(rmse_percent_improved, 2)
+```
+Therefore, my RMSE improved by 41.58% when the new predictor variable was applied.
